@@ -1,0 +1,72 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    /* --- NEW/MODIFIED STYLES FOR BACKGROUND IMAGE --- */
+    background-image: url('http://googleusercontent.com/image_generation_content/2'); /* The generated image URL */
+    background-size: cover; /* Ensures the image covers the entire background */
+    background-position: center; /* Centers the image */
+    background-repeat: no-repeat; /* Prevents the image from repeating */
+    background-attachment: fixed; /* Keeps the background image fixed when content scrolls (though your app doesn't scroll much) */
+    /* Add a subtle overlay to make content more readable on top of the image */
+    background-color: rgba(0, 0, 0, 0.3); /* Dark overlay */
+    background-blend-mode: overlay; /* Blends the overlay with the image */
+    /* --- END NEW/MODIFIED STYLES --- */
+}
+
+#map {
+    height: 100vh;
+    width: 100vw;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+/* Control Panel - Adjust background for better contrast against new body background */
+.controls-panel {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    /* Changed background from linear-gradient to a slightly more opaque white or light grey */
+    background-color: rgba(255, 255, 255, 0.95); /* More opaque white */
+    padding: 25px 35px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 1;
+    min-width: 320px;
+    border: 1px solid rgba(220, 220, 220, 0.7);
+    backdrop-filter: blur(5px); /* Keep frosted glass effect */
+}
+
+/* Rest of your CSS (buttons, slider, metadata, loading overlay) remains the same */
+/* ... */
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Changed background for better contrast with the new body background */
+    background-color: rgba(0, 0, 0, 0.85); /* Slightly darker overlay */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.8em;
+    color: white;
+    z-index: 100;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+    transition: opacity 0.5s ease;
+}
+.loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ... (rest of the CSS code) ... */
