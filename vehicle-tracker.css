@@ -6,8 +6,8 @@ body {
     width: 100vw;  /* Ensure body takes full viewport width for map to fill */
     position: relative; /* Needed for positioning overlays */
 
-    /* --- BACKGROUND IMAGE STYLES --- */
-    background-image: url('http://googleusercontent.com/image_generation_content/2'); /* The generated image URL */
+    /* --- BACKGROUND IMAGE STYLES - CHANGED TO HTTPS --- */
+    background-image: url('https://googleusercontent.com/image_generation_content/2'); /* The generated image URL */
     background-size: cover; /* Ensures the image covers the entire background */
     background-position: center; /* Centers the image */
     background-repeat: no-repeat; /* Prevents the image from repeating */
