@@ -24,7 +24,7 @@ body {
     top: 0;
     bottom: 0;
     width: 100%;
-    z-index: 0; /* Keep it behind controls */
+    z-index: 0; /* Behind controls */
 }
 
 
