@@ -1,12 +1,27 @@
-body {
+/* --- ESSENTIAL STYLES FOR MAP CONTAINER --- */
+/* These ensure the map takes up the full viewport */
+html, body {
+    height: 100%;
     margin: 0;
+    padding: 0;
+}
+#map {
+    height: 100%; /* Map will fill the height of its parent (body) */
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0; /* Behind controls */
+}
+/* --- END ESSENTIAL STYLES --- */
+
+
+body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow: hidden; /* Prevent scrollbars */
-    height: 100vh; /* Ensure body takes full viewport height for map to fill */
-    width: 100vw;  /* Ensure body takes full viewport width for map to fill */
-    position: relative; /* Needed for positioning overlays */
+    /* Ensure body takes full viewport height and width for map to fill */
 
-    /* --- BACKGROUND IMAGE STYLES - CHANGED TO HTTPS --- */
+    /* --- BACKGROUND IMAGE STYLES - NOW USING HTTPS --- */
     background-image: url('https://googleusercontent.com/image_generation_content/2'); /* The generated image URL */
     background-size: cover; /* Ensures the image covers the entire background */
     background-position: center; /* Centers the image */
@@ -15,16 +30,6 @@ body {
     /* Add a subtle overlay to make content more readable on top of the image */
     background-color: rgba(0, 0, 0, 0.3); /* Dark overlay */
     background-blend-mode: overlay; /* Blends the overlay with the image */
-    /* --- END BACKGROUND IMAGE STYLES --- */
-}
-
-/* Google Maps map container - Essential for display */
-#map {
-    position: absolute; /* Changed to absolute for full screen */
-    top: 0;
-    bottom: 0;
-    width: 100%;
-    z-index: 0; /* Behind controls */
 }
 
 
