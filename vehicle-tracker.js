@@ -1,6 +1,5 @@
 // Global Google Maps objects
 let map;
-// directionsService is no longer needed as we're using dummy data
 let fullRoutePolyline; // To display the entire calculated route
 let vehicleTracePolyline; // To display the path the vehicle has traveled
 let vehicleMarker;
@@ -37,8 +36,6 @@ async function initMap() {
         disableDefaultUI: true // Optional: Remove default UI controls like zoom, street view
     });
 
-    // directionsService is no longer initialized or used here
-
     // Initialize the full route polyline (will be updated after dummy data load)
     fullRoutePolyline = new google.maps.Polyline({
         path: [],
@@ -63,7 +60,7 @@ async function initMap() {
     await fetchDummyRouteData();
 }
 
-// NEW: Function to fetch dummy data from local JSON file
+// Function to fetch dummy data from local JSON file
 async function fetchDummyRouteData() {
     loadingOverlay.classList.remove('hidden'); // Show loading overlay
     try {
@@ -142,7 +139,7 @@ function updateVehiclePosition() {
             position: currentLatLng,
             map: map, // Assign to the map
             icon: {
-                url: 'https://cdn-icons-png.flaticon.com/512/1046/1046777.png', // Red car icon
+                url: './images/sport-car.png', // Path to your uploaded sport-car.png
                 scaledSize: new google.maps.Size(40, 40), // Size of the icon
                 anchor: new google.maps.Point(20, 40) // Point of the icon which will correspond to marker's location
             },
