@@ -94,7 +94,7 @@ async function fetchRouteData() {
             routePoints = decodedPath.map((latlng, index) => ({
                 latitude: latlng.lat(),
                 longitude: latlng.lng(),
-                // Generate dummy timestamps. Using current time for realism.
+                // Generate dummy timestamps. Using current time (July 2025) for realism.
                 // Each point is separated by 0.5 seconds for smoother animation.
                 timestamp: new Date(new Date().getTime() + index * 500).toISOString() 
             }));
