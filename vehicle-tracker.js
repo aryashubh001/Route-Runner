@@ -96,8 +96,7 @@ async function fetchRouteData() {
                 longitude: latlng.lng(),
                 // Generate dummy timestamps. Using current time for realism.
                 // Each point is separated by 0.5 seconds for smoother animation.
-                // The current year is 2025.
-                timestamp: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 10, 0, 0).getTime() + index * 500).toISOString() 
+                timestamp: new Date(new Date().getTime() + index * 500).toISOString() 
             }));
 
             // Fit the map to the bounds of the fetched route for initial view
