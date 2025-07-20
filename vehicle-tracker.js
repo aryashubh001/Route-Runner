@@ -27,7 +27,7 @@ const loadingOverlay = document.getElementById('loadingOverlay');
 const startAddress = 'Madan Sweets Rakesh Marg, Ghaziabad, Uttar Pradesh, India';
 const endAddress = 'Shiva Tower, Patel Nagar II, Ghaziabad, Uttar Pradesh, India';
 
-// Function called by the Google Maps API when it's fully loaded (specified in index.html callback)
+// Function called by the Google Maps API when it's fully loaded (specified in vehicle-tracker.html callback)
 async function initMap() {
     // Initialize the map
     map = new google.maps.Map(document.getElementById('map'), {
@@ -96,7 +96,8 @@ async function fetchRouteData() {
                 longitude: latlng.lng(),
                 // Generate dummy timestamps. Using current time for realism.
                 // Each point is separated by 0.5 seconds for smoother animation.
-                timestamp: new Date(new Date().getTime() + index * 500).toISOString() 
+                // The current year is 2025.
+                timestamp: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), 10, 0, 0).getTime() + index * 500).toISOString() 
             }));
 
             // Fit the map to the bounds of the fetched route for initial view
@@ -192,7 +193,7 @@ function updateVehiclePosition() {
 
     // Calculate speed (only if there's a previous point)
     if (currentIndex > 0 && currentPointData.timestamp && routePoints[currentIndex - 1].timestamp) {
-        const prevPointData = routePoints[currentIndex - 0]; // Typo fix: Changed from currentIndex - 0 to currentIndex - 1
+        const prevPointData = routePoints[currentIndex - 1];
         const prevLatLng = new google.maps.LatLng(prevPointData.latitude, prevPointData.longitude);
 
         const distanceKm = calculateDistance(prevLatLng, currentLatLng);
