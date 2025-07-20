@@ -1,6 +1,6 @@
 // Global Google Maps objects
 let map;
-let directionsService;
+// directionsService is no longer needed as we're using dummy data
 let fullRoutePolyline; // To display the entire calculated route
 let vehicleTracePolyline; // To display the path the vehicle has traveled
 let vehicleMarker;
@@ -22,25 +22,24 @@ const elapsedTimeSpan = document.getElementById('elapsedTime');
 const currentSpeedSpan = document.getElementById('currentSpeed');
 const loadingOverlay = document.getElementById('loadingOverlay');
 
-// Define start and end points for the route in Ghaziabad
-// Google Maps API can use string queries for origin/destination
-const startAddress = 'Madan Sweets Rakesh Marg, Ghaziabad, Uttar Pradesh, India';
-const endAddress = 'Shiva Tower, Patel Nagar II, Ghaziabad, Uttar Pradesh, India';
+// Define initial map center for the route (India Gate)
+const initialCenterLat = 28.6129; // India Gate latitude
+const initialCenterLng = 77.2295; // India Gate longitude
+
 
 // Function called by the Google Maps API when it's fully loaded (specified in vehicle-tracker.html callback)
 async function initMap() {
     // Initialize the map
     map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: 28.66590, lng: 77.44750 }, // Initial center (Madan Sweets coordinates)
+        center: { lat: initialCenterLat, lng: initialCenterLng }, // Initial center (India Gate coordinates)
         zoom: 17, // Good zoom for street level
         mapId: 'DEMO_MAP_ID', // You can create a custom map style in Cloud Console and link it here
         disableDefaultUI: true // Optional: Remove default UI controls like zoom, street view
     });
 
-    // Initialize DirectionsService
-    directionsService = new google.maps.DirectionsService();
+    // directionsService is no longer initialized or used here
 
-    // Initialize the full route polyline (will be updated after API call)
+    // Initialize the full route polyline (will be updated after dummy data load)
     fullRoutePolyline = new google.maps.Polyline({
         path: [],
         geodesic: true,
@@ -60,55 +59,42 @@ async function initMap() {
     });
     vehicleTracePolyline.setMap(map);
 
-    // Fetch route data from Google Directions API upon map initialization
-    await fetchRouteData();
+    // Fetch route data from local dummy.json file
+    await fetchDummyRouteData();
 }
 
-// Function to fetch route data from Google Directions API
-async function fetchRouteData() {
+// NEW: Function to fetch dummy data from local JSON file
+async function fetchDummyRouteData() {
     loadingOverlay.classList.remove('hidden'); // Show loading overlay
     try {
-        const request = {
-            origin: startAddress,
-            destination: endAddress,
-            travelMode: google.maps.TravelMode.DRIVING,
-        };
-
-        const response = await directionsService.route(request);
-
-        if (response.routes && response.routes.length > 0) {
-            // Get the first route
-            const route = response.routes[0];
-            
-            // Get the overall polyline path (encoded string from the overview_polyline)
-            const encodedPolyline = route.overview_polyline.points;
-            
-            // Decode the polyline into an array of LatLng objects
-            // This requires the 'geometry' library to be loaded with the Google Maps API script
-            const decodedPath = google.maps.geometry.encoding.decodePath(encodedPolyline);
-
-            // Set the full route polyline on the map
-            fullRoutePolyline.setPath(decodedPath);
-
-            // Prepare routePoints for animation (adding dummy timestamps)
-            routePoints = decodedPath.map((latlng, index) => ({
-                latitude: latlng.lat(),
-                longitude: latlng.lng(),
-                // Generate dummy timestamps. Using current time (July 2025) for realism.
-                // Each point is separated by 0.5 seconds for smoother animation.
-                timestamp: new Date(new Date().getTime() + index * 500).toISOString() 
-            }));
-
-            // Fit the map to the bounds of the fetched route for initial view
-            map.fitBounds(route.bounds);
-
-            return routePoints; // Return the parsed points for animation
-        } else {
-            throw new Error('No routes found between specified points.');
+        const response = await fetch('./dummy-route.json'); // Fetch from local JSON
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const data = await response.json();
+
+        // Convert raw data to Google Maps LatLng objects for use
+        const decodedPath = data.map(point => new google.maps.LatLng(point.latitude, point.longitude));
+        
+        // Set the full route polyline on the map
+        fullRoutePolyline.setPath(decodedPath);
+
+        // Store route points for animation, using original timestamps from JSON
+        routePoints = data; 
+        
+        // Fit the map to the bounds of the dummy route
+        if (routePoints.length > 0) {
+            const bounds = new google.maps.LatLngBounds();
+            routePoints.forEach(point => {
+                bounds.extend(new google.maps.LatLng(point.latitude, point.longitude));
+            });
+            map.fitBounds(bounds);
+        }
+
+        return routePoints;
     } catch (error) {
-        console.error('Error fetching Google Directions data:', error);
-        alert('Failed to get route data from Google Maps. Check your API key, billing, network, or coordinates. Error: ' + error.message);
+        console.error('Error fetching dummy route data:', error);
+        alert('Failed to load dummy route data. Check your dummy-route.json file or network. Error: ' + error.message);
         return [];
     } finally {
         loadingOverlay.classList.add('hidden'); // Hide loading overlay
@@ -117,7 +103,6 @@ async function fetchRouteData() {
 
 // Function to calculate distance between two LatLng points in kilometers (using Google's geometry library)
 function calculateDistance(latlng1, latlng2) {
-    // google.maps.geometry.spherical.computeDistanceBetween returns distance in meters
     const distanceMeters = google.maps.geometry.spherical.computeDistanceBetween(latlng1, latlng2);
     return distanceMeters / 1000; // Convert to kilometers
 }
@@ -239,9 +224,9 @@ function resetSimulation() {
         map.setCenter(new google.maps.LatLng(routePoints[0].latitude, routePoints[0].longitude));
         map.setZoom(17);
     } else {
-         // Fallback to general Ghaziabad view if no route data was fetched
-         map.setCenter({ lat: 28.6692, lng: 77.4538 }); // General Ghaziabad coords
-         map.setZoom(14);
+         // Fallback to initial general view if no route data
+         map.setCenter({ lat: initialCenterLat, lng: initialCenterLng }); 
+         map.setZoom(17); // Keep zoom consistent
     }
 }
 
@@ -263,7 +248,7 @@ playPauseBtn.addEventListener('click', () => {
             animationInterval = setInterval(updateVehiclePosition, animationSpeed);
             playPauseBtn.textContent = 'Pause';
         } else {
-            alert('No route data available to start simulation. Please wait for route calculation or check for errors.');
+            alert('No route data available to start simulation. Please wait for dummy data to load.');
         }
     }
     isPlaying = !isPlaying; // Toggle playing state
@@ -289,4 +274,3 @@ speedSlider.addEventListener('input', (event) => {
 });
 
 // The Google Maps API will call initMap() automatically when it's ready.
-// There is no need for a manual init() call at the end of the script, as initMap is the entry point.
