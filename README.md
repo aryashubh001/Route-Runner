@@ -5,7 +5,7 @@ README.md
 # Vehicle Movement Tracker: India Gate to Red Fort Simulation
 
 ## Objective
-This project is a frontend-only web application that simulates a vehicle moving along a predefined route on a map. It displays the vehicle's live position and draws its route using static dummy data, fulfilling the requirements of a Frontend Developer Intern assignment.
+This project is a frontend-only web application that simulates a vehicle moving along a predefined route on a map. It displays the vehicle's live position and draws its route using static dummy data.
 
 ## Features
 
