@@ -27,6 +27,9 @@ This project is a frontend-only web application that simulates a vehicle moving 
 * **Local JSON Data:** `dummy-route.json` serves as the static data source for the vehicle's predefined route.
 * **Flaticon (CDN):** Source for the generic car icon.
 
+## Published Link
+https://aryashubh001.github.io/Route-Runner/
+
 ## Project Structure
 
 ```
@@ -40,5 +43,6 @@ This project is a frontend-only web application that simulates a vehicle moving 
 │   └── sport-car.png (or your custom car image)
 │   └── .gitkeep
 └── .nojekyll
-## Published Link
-https://aryashubh001.github.io/Route-Runner/
+
+
+
