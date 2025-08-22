@@ -1,4 +1,4 @@
-// Global Google Maps objects
+// Global Leaflet and OSM objects
 let map;
 let fullRoutePolyline; // To display the entire calculated route
 let vehicleTracePolyline; // To display the path the vehicle has traveled
@@ -26,35 +26,29 @@ const initialCenterLat = 28.6129; // India Gate latitude
 const initialCenterLng = 77.2295; // India Gate longitude
 
 
-// Function called by the Google Maps API when it's fully loaded (specified in vehicle-tracker.html callback)
+// Function called by the HTML when the page loads
 async function initMap() {
-    // Initialize the map
-    map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: initialCenterLat, lng: initialCenterLng }, // Initial center (India Gate coordinates)
-        zoom: 17, // Good zoom for street level
-        mapId: 'DEMO_MAP_ID', // You can create a custom map style in Cloud Console and link it here
-        disableDefaultUI: true // Optional: Remove default UI controls like zoom, street view
-    });
+    // Initialize the map using Leaflet
+    map = L.map('map').setView([initialCenterLat, initialCenterLng], 17);
 
-    // Initialize the full route polyline (will be updated after dummy data load)
-    fullRoutePolyline = new google.maps.Polyline({
-        path: [],
-        geodesic: true,
-        strokeColor: '#007bff', // Blue for the full route
-        strokeOpacity: 0.7,
-        strokeWeight: 5
-    });
-    fullRoutePolyline.setMap(map);
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Initialize the full route polyline
+    fullRoutePolyline = L.polyline([], {
+        color: '#007bff', // Blue for the full route
+        opacity: 0.7,
+        weight: 5
+    }).addTo(map);
 
     // Initialize the vehicle trace polyline (drawn as vehicle moves)
-    vehicleTracePolyline = new google.maps.Polyline({
-        path: [],
-        geodesic: true,
-        strokeColor: '#00FF00', // Bright green for the trace
-        strokeOpacity: 0.9,
-        strokeWeight: 6
-    });
-    vehicleTracePolyline.setMap(map);
+    vehicleTracePolyline = L.polyline([], {
+        color: '#00FF00', // Bright green for the trace
+        opacity: 0.9,
+        weight: 6
+    }).addTo(map);
 
     // Fetch route data from local dummy.json file
     await fetchDummyRouteData();
@@ -70,21 +64,18 @@ async function fetchDummyRouteData() {
         }
         const data = await response.json();
 
-        // Convert raw data to Google Maps LatLng objects for use
-        const decodedPath = data.map(point => new google.maps.LatLng(point.latitude, point.longitude));
-        
+        // Convert raw data to Leaflet LatLng objects
+        const decodedPath = data.map(point => L.latLng(point.latitude, point.longitude));
+
         // Set the full route polyline on the map
-        fullRoutePolyline.setPath(decodedPath);
+        fullRoutePolyline.setLatLngs(decodedPath);
 
         // Store route points for animation, using original timestamps from JSON
-        routePoints = data; 
-        
+        routePoints = data;
+
         // Fit the map to the bounds of the dummy route
         if (routePoints.length > 0) {
-            const bounds = new google.maps.LatLngBounds();
-            routePoints.forEach(point => {
-                bounds.extend(new google.maps.LatLng(point.latitude, point.longitude));
-            });
+            const bounds = fullRoutePolyline.getBounds();
             map.fitBounds(bounds);
         }
 
@@ -98,10 +89,17 @@ async function fetchDummyRouteData() {
     }
 }
 
-// Function to calculate distance between two LatLng points in kilometers (using Google's geometry library)
+// Function to calculate distance between two LatLng points in kilometers (using Haversine formula)
 function calculateDistance(latlng1, latlng2) {
-    const distanceMeters = google.maps.geometry.spherical.computeDistanceBetween(latlng1, latlng2);
-    return distanceMeters / 1000; // Convert to kilometers
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (latlng2.lat - latlng1.lat) * Math.PI / 180;
+    const dLon = (latlng2.lng - latlng1.lng) * Math.PI / 180;
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(latlng1.lat * Math.PI / 180) * Math.cos(latlng2.lat * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in kilometers
 }
 
 // Function to format total seconds into HH:MM:SS string
@@ -123,40 +121,39 @@ function updateVehiclePosition() {
         playPauseBtn.textContent = 'Play';
         console.log('Route simulation complete.');
         // Optionally fit map to the entire route after completion
-        if (fullRoutePolyline.getPath().getLength() > 0) {
+        if (fullRoutePolyline.getLatLngs().length > 0) {
             map.fitBounds(fullRoutePolyline.getBounds());
         }
         return;
     }
 
     const currentPointData = routePoints[currentIndex];
-    // Create a new Google Maps LatLng object for the current position
-    const currentLatLng = new google.maps.LatLng(currentPointData.latitude, currentPointData.longitude);
+    // Create a new Leaflet LatLng object for the current position
+    const currentLatLng = L.latLng(currentPointData.latitude, currentPointData.longitude);
 
     if (!vehicleMarker) {
         // Create vehicle marker if it doesn't exist
-        vehicleMarker = new google.maps.Marker({
-            position: currentLatLng,
-            map: map, // Assign to the map
-            icon: {
-                url: 'https://raw.githubusercontent.com/aryashubh001/Route-Runner/main/images/my-car.png', // <--- YOUR NEW CAR ICON URL!
-                scaledSize: new google.maps.Size(40, 40), // Size of the icon
-                anchor: new google.maps.Point(20, 40) // Point of the icon which will correspond to marker's location
-            },
-            title: 'Vehicle'
+        const vehicleIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/aryashubh001/Route-Runner/main/images/my-car.png',
+            iconSize: [40, 40], // size of the icon
+            iconAnchor: [20, 40] // point of the icon which will correspond to marker's location
         });
-        
+
+        vehicleMarker = L.marker(currentLatLng, {
+            icon: vehicleIcon
+        }).addTo(map);
+
         // Set initial start time for elapsed time calculation
         startTime = new Date(currentPointData.timestamp);
     } else {
         // Update existing marker's position
-        vehicleMarker.setPosition(currentLatLng);
+        vehicleMarker.setLatLng(currentLatLng);
     }
 
     // Add current point to the vehicle's trace polyline
-    const path = vehicleTracePolyline.getPath();
+    const path = vehicleTracePolyline.getLatLngs();
     path.push(currentLatLng);
-    vehicleTracePolyline.setPath(path); // Update the polyline on the map
+    vehicleTracePolyline.setLatLngs(path); // Update the polyline on the map
 
     // Pan the map to follow the vehicle smoothly
     map.panTo(currentLatLng);
@@ -175,7 +172,7 @@ function updateVehiclePosition() {
     // Calculate speed (only if there's a previous point)
     if (currentIndex > 0 && currentPointData.timestamp && routePoints[currentIndex - 1].timestamp) {
         const prevPointData = routePoints[currentIndex - 1];
-        const prevLatLng = new google.maps.LatLng(prevPointData.latitude, prevPointData.longitude);
+        const prevLatLng = L.latLng(prevPointData.latitude, prevPointData.longitude);
 
         const distanceKm = calculateDistance(prevLatLng, currentLatLng);
         const timeDiffSeconds = (new Date(currentPointData.timestamp) - new Date(prevPointData.timestamp)) / 1000;
@@ -201,12 +198,12 @@ function resetSimulation() {
     currentIndex = 0;
 
     if (vehicleMarker) {
-        vehicleMarker.setMap(null);
+        map.removeLayer(vehicleMarker);
         vehicleMarker = null;
     }
-    
+
     if (vehicleTracePolyline) {
-        vehicleTracePolyline.setPath([]);
+        vehicleTracePolyline.setLatLngs([]);
     }
 
     currentCoordsSpan.textContent = 'N/A';
@@ -214,11 +211,9 @@ function resetSimulation() {
     currentSpeedSpan.textContent = 'N/A';
 
     if (routePoints.length > 0) {
-        map.setCenter(new google.maps.LatLng(routePoints[0].latitude, routePoints[0].longitude));
-        map.setZoom(17);
+        map.setView(L.latLng(routePoints[0].latitude, routePoints[0].longitude), 17);
     } else {
-        map.setCenter({ lat: initialCenterLat, lng: initialCenterLng }); 
-        map.setZoom(17);
+        map.setView([initialCenterLat, initialCenterLng], 17);
     }
 }
 
@@ -235,23 +230,4 @@ playPauseBtn.addEventListener('click', () => {
             animationInterval = setInterval(updateVehiclePosition, animationSpeed);
             playPauseBtn.textContent = 'Pause';
         } else {
-            alert('No route data available to start simulation. Please wait for dummy data to load.');
-        }
-    }
-    isPlaying = !isPlaying;
-});
-
-resetBtn.addEventListener('click', () => { // Changed from playPauseBtn to resetBtn
-    resetSimulation();
-});
-
-speedSlider.addEventListener('input', (event) => {
-    const multiplier = parseFloat(event.target.value);
-    speedValueSpan.textContent = `${multiplier}x`;
-    animationSpeed = 2000 / multiplier;
-
-    if (isPlaying) {
-        clearInterval(animationInterval);
-        animationInterval = setInterval(updateVehiclePosition, animationSpeed);
-    }
-});
+            alert('No route data
